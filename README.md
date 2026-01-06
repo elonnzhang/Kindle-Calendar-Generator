@@ -2,6 +2,8 @@
 
 生成 Kindle 日历电子书的 Node.js + React 应用。
 
+![预览](./output/preview.png)
+
 ## 项目简介
 
 生成一本 EPUB 电子书，封面是每个月的日历，内容为空。Kindle 在待机时会显示封面，因此可以将日历显示在 Kindle 主屏幕上。
