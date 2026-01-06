@@ -1,0 +1,32 @@
+{
+  "name": "kindle-calendar",
+  "version": "1.0.0",
+  "description": "Generate EPUB calendar books for Kindle e-readers",
+  "main": "src/index.js",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview",
+    "generate": "node src/cli.js"
+  },
+  "keywords": [
+    "kindle",
+    "calendar",
+    "epub",
+    "ebook"
+  ],
+  "author": "",
+  "license": "MIT",
+  "dependencies": {
+    "commander": "^11.1.0",
+    "jsdom": "^23.0.0",
+    "archiver": "^6.0.0"
+  },
+  "devDependencies": {
+    "@vitejs/plugin-react": "^4.2.1",
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0",
+    "vite": "^5.0.8"
+  }
+}
