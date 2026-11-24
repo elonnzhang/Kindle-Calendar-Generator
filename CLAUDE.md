@@ -14,30 +14,30 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - **Frontend**: React + Vite
 - **Backend/CLI**: Node.js (ES Modules)
 - **Image Generation**: Pure JavaScript SVG generation (no native dependencies)
-- **EPUB Generation**: archiver (creates EPUB as ZIP with proper structure)
+- **EPUB Generation**: fflate, shared by the CLI and the web app
 
 ## Architecture
 
 The project has two main interfaces:
 
 ### 1. Web Interface (React)
-- **src/App.jsx** - Main application component
+- **src/App.jsx** - Main application component; downloads EPUBs built by `src/lib/epub.js`
 - **src/components/CalendarForm.jsx** - Form for calendar settings (year, month, device preset, dimensions)
 - **src/components/CalendarPreview.jsx** - Real-time canvas preview of calendar
 
 ### 2. CLI Tool (Node.js)
 - **src/cli.js** - Command-line interface for batch generation
 - **src/lib/calendarGenerator.js** - Calendar SVG generation (pure JavaScript, no native dependencies)
-- **src/lib/epubGenerator.js** - EPUB file generation using archiver to create proper EPUB structure
+- **src/lib/epub.js** - `buildCalendarEpub()` returns the EPUB as a `Uint8Array`; used by both the CLI and the web app
 
 ### Key Implementation Details
 
 - **No Native Dependencies**: Uses SVG for calendar rendering instead of node-canvas to avoid compilation issues across different Node.js versions
-- **EPUB Structure**: Manually creates EPUB structure (ZIP with mimetype, META-INF, OEBPS) using archiver
+- **EPUB Structure**: Manually creates EPUB structure (ZIP with `mimetype` first and stored, META-INF, OEBPS)
 - **Chinese Calendar**: Weekdays in Chinese (一到日)
 - **No Date Highlighting**: Calendar displays all dates uniformly without highlighting current day
 - **Kindle Optimized**: Default 1072×1448 resolution for Kindle Paperwhite, configurable for other devices
-- **Dual Output**: Web interface generates SVG files, CLI tool generates EPUB files
+- **Same Output**: The web app and the CLI produce EPUBs with identical entries and contents
 
 ## Project Structure
 
@@ -51,7 +51,7 @@ kindle-calendar/
 │   │   └── CalendarPreview.jsx
 │   ├── lib/                  # Core logic
 │   │   ├── calendarGenerator.js
-│   │   └── epubGenerator.js
+│   │   └── epub.js
 │   └── cli.js                # CLI tool
 ├── index.html                # HTML entry
 ├── vite.config.js            # Vite configuration

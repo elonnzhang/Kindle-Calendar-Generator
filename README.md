@@ -8,7 +8,7 @@
 
 ## 功能特点
 
-- 📱 **Web 界面**：可视化配置和实时预览，生成 SVG 格式日历
+- 📱 **Web 界面**：可视化配置和实时预览，在浏览器里直接下载 EPUB
 - 💻 **命令行工具**：批量生成 EPUB 格式电子书
 - 🎨 中文星期显示（一到日）
 - 📚 支持生成单月或全年 12 个月
@@ -19,7 +19,7 @@
 - Frontend: React + Vite
 - Backend/CLI: Node.js (ES Modules)
 - 图像生成: 纯 JavaScript SVG（无需编译原生模块）
-- EPUB 生成: archiver（手动构建标准 EPUB 结构）
+- EPUB 生成: fflate（Web 界面和命令行共用 `src/lib/epub.js`）
 
 ## 安装
 
@@ -36,12 +36,10 @@ npm install
 npm run dev
 
 # 访问浏览器打开的地址（通常是 http://localhost:3001）
-# 在界面中选择年份、月份、设备预设，点击生成按钮下载 SVG 文件
+# 在界面中选择年份、月份、设备预设，点击生成按钮下载 EPUB 文件
 ```
 
-**注意**：Web 界面生成 SVG 格式图片，可用作电子书封面或独立使用。如需生成 EPUB 电子书，请使用命令行工具。
-
-### 命令行工具（推荐用于生成 EPUB）
+### 命令行工具
 
 ```bash
 # 生成当前月份的 EPUB
@@ -86,8 +84,8 @@ kindle-calendar/
 │   │   ├── CalendarForm.jsx  # 配置表单
 │   │   └── CalendarPreview.jsx  # 日历预览
 │   ├── lib/                  # 核心逻辑
-│   │   ├── calendarGenerator.js  # 日历图像生成
-│   │   └── epubGenerator.js      # EPUB 生成
+│   │   ├── calendarGenerator.js  # 日历 SVG 生成
+│   │   └── epub.js               # EPUB 打包（Web 和 CLI 共用）
 │   └── cli.js                # 命令行工具
 ├── index.html                # HTML 入口
 ├── vite.config.js            # Vite 配置
@@ -105,7 +103,7 @@ npm run preview
 
 - react: Web 界面
 - vite: 开发服务器和构建工具
-- archiver: EPUB 文件打包（ZIP 格式）
+- fflate: EPUB 文件打包（ZIP 格式）
 - commander: CLI 参数解析
 
 ## 技术说明
