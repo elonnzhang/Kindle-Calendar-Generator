@@ -1,81 +1,53 @@
 #!/usr/bin/env node
 
-import { Command } from 'commander';
+import { Command, InvalidArgumentError } from 'commander';
 import { buildCalendarEpub, epubFilename } from './lib/epub.js';
 import fs from 'fs';
 import path from 'path';
 
-const program = new Command();
+const intIn = (min, max) => (value) => {
+  const n = Number(value);
+  if (!Number.isInteger(n) || n < min || n > max) {
+    throw new InvalidArgumentError(`Must be a whole number from ${min} to ${max}.`);
+  }
+  return n;
+};
 
-program
+const now = new Date();
+
+const program = new Command()
   .name('kindle-calendar')
   .description('Generate Kindle calendar EPUB books')
-  .version('1.0.0');
-
-program
-  .option('-y, --year <year>', 'Calendar year', new Date().getFullYear().toString())
-  .option('-m, --month <month>', 'Calendar month (1-12)', null)
+  .version('1.0.0')
+  .option('-y, --year <year>', 'Calendar year', intIn(1, 9999), now.getFullYear())
+  .option('-m, --month <month>', 'Calendar month (1-12)', intIn(1, 12), now.getMonth() + 1)
   .option('-o, --output <directory>', 'Output directory', 'output')
-  .option('-w, --width <width>', 'Image width in pixels', '1072')
-  .option('-h, --height <height>', 'Image height in pixels', '1448')
-  .option('--all', 'Generate all 12 months');
+  .option('-w, --width <width>', 'Image width in pixels', intIn(1, 10000), 1072)
+  .option('-h, --height <height>', 'Image height in pixels', intIn(1, 10000), 1448)
+  .option('--all', 'Generate all 12 months')
+  .parse();
 
-program.parse();
+const { year, month, width, height, output: outputDir, all } = program.opts();
 
-const options = program.opts();
-const year = parseInt(options.year);
-const width = parseInt(options.width);
-const height = parseInt(options.height);
-const outputDir = options.output;
+fs.mkdirSync(outputDir, { recursive: true });
 
-// Create output directory if it doesn't exist
-if (!fs.existsSync(outputDir)) {
-  fs.mkdirSync(outputDir, { recursive: true });
-}
-
-async function generateMonth(year, month) {
+async function generateMonth(month) {
   const outputPath = path.join(outputDir, epubFilename(year, month));
-
   console.log(`Generating calendar for ${year}-${month.toString().padStart(2, '0')}...`);
-
-  try {
-    await fs.promises.writeFile(outputPath, buildCalendarEpub(year, month, width, height));
-    console.log(`✓ Saved to: ${outputPath}`);
-    return outputPath;
-  } catch (error) {
-    console.error(`✗ Error generating ${year}-${month}: ${error.message}`);
-    throw error;
-  }
+  await fs.promises.writeFile(outputPath, buildCalendarEpub(year, month, width, height));
+  console.log(`✓ Saved to: ${outputPath}`);
 }
 
-async function main() {
-  try {
-    if (options.all) {
-      console.log(`Generating calendars for all months of ${year}...\n`);
-      const promises = [];
-
-      for (let month = 1; month <= 12; month++) {
-        promises.push(generateMonth(year, month));
-      }
-
-      await Promise.all(promises);
-      console.log(`\n✓ Generated 12 calendar books for ${year}`);
-    } else {
-      const month = options.month ? parseInt(options.month) : new Date().getMonth() + 1;
-
-      if (month < 1 || month > 12) {
-        console.error('Error: Month must be between 1 and 12');
-        process.exit(1);
-      }
-
-      await generateMonth(year, month);
-    }
-
-    console.log('\nDone! Transfer the EPUB files to your Kindle to use them.');
-  } catch (error) {
-    console.error('\nError:', error.message);
-    process.exit(1);
+try {
+  if (all) {
+    console.log(`Generating calendars for all months of ${year}...\n`);
+    await Promise.all(Array.from({ length: 12 }, (_, i) => generateMonth(i + 1)));
+    console.log(`\n✓ Generated 12 calendar books for ${year}`);
+  } else {
+    await generateMonth(month);
   }
+  console.log('\nDone! Transfer the EPUB files to your Kindle to use them.');
+} catch (error) {
+  console.error('\nError:', error.message);
+  process.exit(1);
 }
-
-main();
