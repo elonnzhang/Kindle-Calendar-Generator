@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import CalendarPreview from './components/CalendarPreview';
-import CalendarForm from './components/CalendarForm';
+import CalendarForm, { DEVICE_PRESETS } from './components/CalendarForm';
 import { buildCalendarEpub, epubFilename } from './lib/epub.js';
 import './App.css';
 
@@ -14,60 +14,52 @@ function downloadEpub(year, month, width, height) {
   URL.revokeObjectURL(url);
 }
 
-function App() {
-  const [selectedYear, setSelectedYear] = useState(new Date().getFullYear());
-  const [selectedMonth, setSelectedMonth] = useState(new Date().getMonth() + 1);
-  const [generating, setGenerating] = useState(false);
+const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
-  const handleGenerate = async (options) => {
-    setGenerating(true);
+function App() {
+  const today = new Date();
+  const [year, setYear] = useState(today.getFullYear());
+  const [month, setMonth] = useState(today.getMonth() + 1);
+  const [size, setSize] = useState({ width: DEVICE_PRESETS[0].width, height: DEVICE_PRESETS[0].height });
+  const [status, setStatus] = useState({ kind: 'idle' });
+
+  const handleGenerate = async ({ allMonths }) => {
+    const months = allMonths ? Array.from({ length: 12 }, (_, i) => i + 1) : [month];
     try {
-      if (options.month) {
-        // Generate single month
-        await downloadEpub(options.year, options.month, options.width, options.height);
-        alert('EPUB 日历已生成！');
-      } else {
-        // Generate all months
-        for (let month = 1; month <= 12; month++) {
-          await new Promise(resolve => setTimeout(resolve, 500)); // Delay between downloads
-          await downloadEpub(options.year, month, options.width, options.height);
-        }
-        alert('全年 EPUB 日历已生成！');
+      for (const [i, m] of months.entries()) {
+        setStatus({ kind: 'working', done: i, total: months.length });
+        if (i > 0) await sleep(500);
+        downloadEpub(year, m, size.width, size.height);
       }
+      setStatus({
+        kind: 'done',
+        message: allMonths ? `已下载 ${year} 年全部 12 本` : `已下载 ${epubFilename(year, month)}`,
+      });
     } catch (error) {
-      console.error('Generation error:', error);
-      alert('生成失败：' + error.message);
-    } finally {
-      setGenerating(false);
+      setStatus({ kind: 'error', message: `生成失败：${error.message}` });
     }
   };
 
   return (
     <div className="app">
       <header className="app-header">
-        <h1>📚 Kindle 日历生成器</h1>
-        <p>生成带有日历封面的 EPUB 电子书，在 Kindle 待机界面显示日历</p>
+        <h1>Kindle 日历生成器</h1>
+        <p>生成以月历为封面的 EPUB。传到 Kindle 后，待机画面会显示这个月的日历。</p>
       </header>
 
-      <div className="app-content">
-        <div className="left-panel">
-          <CalendarForm
-            selectedYear={selectedYear}
-            selectedMonth={selectedMonth}
-            onYearChange={setSelectedYear}
-            onMonthChange={setSelectedMonth}
-            onGenerate={handleGenerate}
-            generating={generating}
-          />
-        </div>
-
-        <div className="right-panel">
-          <CalendarPreview
-            year={selectedYear}
-            month={selectedMonth}
-          />
-        </div>
-      </div>
+      <main className="app-content">
+        <CalendarForm
+          year={year}
+          month={month}
+          size={size}
+          status={status}
+          onYearChange={setYear}
+          onMonthChange={setMonth}
+          onSizeChange={setSize}
+          onGenerate={handleGenerate}
+        />
+        <CalendarPreview year={year} month={month} size={size} />
+      </main>
     </div>
   );
 }
