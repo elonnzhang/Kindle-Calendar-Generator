@@ -2,31 +2,224 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 16px;
+  gap: 20px;
   position: sticky;
   top: 24px;
 }
 
-/* A Kindle bezel around the cover, so the preview reads as the standby screen. */
-.device {
-  padding: 18px 18px 30px;
-  background: #18181b;
-  border-radius: 22px;
-  box-shadow:
-    inset 0 0 0 1px rgba(255, 255, 255, 0.06),
-    0 1px 2px rgba(9, 9, 11, 0.08),
-    0 12px 32px -8px rgba(9, 9, 11, 0.25);
+/* Sizes the device so it fits both the column width and the viewport height.
+   --body-h is the body height as a fraction of its width. */
+.kindle-fit {
+  --max-h: min(74vh, 680px);
+  width: min(100%, calc(var(--max-h) / var(--body-h)));
+  container-type: inline-size;
 }
 
-.device img {
+.kindle {
+  --u: 1cqw;
+  position: relative;
+  padding: calc(var(--top) * 100 * var(--u)) calc(var(--right) * 100 * var(--u))
+    calc(var(--bottom) * 100 * var(--u)) calc(var(--left) * 100 * var(--u));
+  border-radius: calc(var(--radius) * 100 * var(--u));
+  box-shadow:
+    inset 0 0 0 1px rgba(255, 255, 255, 0.07),
+    0 0 0 1px rgba(0, 0, 0, 0.55),
+    0 2px 3px rgba(9, 9, 11, 0.18),
+    0 22px 44px -14px rgba(9, 9, 11, 0.45);
+}
+
+/* E-ink: a warm grey page and blacks that never reach pure black. */
+.kindle-screen {
+  position: relative;
+  isolation: isolate;
+  background: #eeede6;
+}
+
+.kindle-screen img {
   display: block;
-  width: auto;
+  width: 100%;
   height: auto;
-  max-width: 100%;
-  max-height: min(70vh, 640px);
-  border-radius: 4px;
-  outline: 1px solid rgba(0, 0, 0, 0.1);
-  outline-offset: -1px;
+  filter: contrast(0.86);
+  mix-blend-mode: multiply;
+}
+
+.kindle-screen::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+.kindle-logo {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: calc(var(--bottom) * 50 * var(--u));
+  translate: 0 50%;
+  text-align: center;
+  font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+  font-size: calc(5.4 * var(--u));
+  font-weight: 500;
+  line-height: 1;
+  letter-spacing: -0.03em;
+  user-select: none;
+}
+
+/* Matte plastic with a recessed screen: Paperwhite and Kindle. */
+.kindle-paperwhite,
+.kindle-basic {
+  background-color: #2b2c2f;
+  background-image:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.04), rgba(0, 0, 0, 0.1)),
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 1 0 0 0 0 1 0 0 0 0 1 0 0 0 .06 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+}
+
+.kindle-paperwhite .kindle-screen,
+.kindle-basic .kindle-screen {
+  box-shadow: 0 0 0 calc(0.45 * var(--u)) #161719;
+}
+
+.kindle-paperwhite .kindle-screen::after,
+.kindle-basic .kindle-screen::after {
+  box-shadow:
+    inset 0 calc(0.5 * var(--u)) calc(1 * var(--u)) rgba(0, 0, 0, 0.32),
+    inset 0 0 0 1px rgba(0, 0, 0, 0.35);
+}
+
+.kindle-paperwhite .kindle-logo {
+  color: #111214;
+  text-shadow: 0 1px 0 rgba(255, 255, 255, 0.06);
+}
+
+.kindle-basic {
+  background-color: #1f1f21;
+}
+
+.kindle-basic .kindle-logo {
+  color: #262629;
+  text-shadow:
+    0 -1px 0 rgba(0, 0, 0, 0.55),
+    0 1px 0 rgba(255, 255, 255, 0.07);
+}
+
+/* Flush glass front: Voyage and Oasis. */
+.kindle-voyage,
+.kindle-oasis {
+  background: #101113;
+}
+
+.kindle-voyage::before,
+.kindle-oasis::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  border-radius: inherit;
+  background: linear-gradient(118deg, rgba(255, 255, 255, 0.08) 0%, rgba(255, 255, 255, 0.025) 30%, rgba(255, 255, 255, 0) 55%);
+  pointer-events: none;
+}
+
+.kindle-voyage .kindle-screen::after,
+.kindle-oasis .kindle-screen::after {
+  box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.45);
+}
+
+.kindle-voyage .kindle-logo {
+  color: #5c5d61;
+}
+
+.kindle-pagepress {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: calc(var(--left) * 100 * var(--u));
+}
+
+.kindle-pagepress-left {
+  left: 0;
+}
+
+.kindle-pagepress-right {
+  right: 0;
+}
+
+.kindle-pagepress .dot,
+.kindle-pagepress .line {
+  position: absolute;
+  left: 50%;
+  translate: -50% 0;
+  background: #3b3c40;
+}
+
+.kindle-pagepress .dot {
+  top: 30%;
+  width: calc(0.9 * var(--u));
+  height: calc(0.9 * var(--u));
+  border-radius: 50%;
+}
+
+.kindle-pagepress .line {
+  top: 45%;
+  width: max(1px, calc(0.22 * var(--u)));
+  height: 18%;
+  border-radius: 1px;
+}
+
+/* Oasis: aluminium rim and a grip with two page-turn buttons. */
+.kindle-oasis {
+  box-shadow:
+    inset 0 0 0 calc(0.8 * var(--u)) #6d6e72,
+    inset 0 0 0 calc(0.8 * var(--u) + 1px) rgba(255, 255, 255, 0.14),
+    0 0 0 1px rgba(0, 0, 0, 0.5),
+    0 2px 3px rgba(9, 9, 11, 0.18),
+    0 22px 44px -14px rgba(9, 9, 11, 0.45);
+}
+
+.kindle-grip {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  right: 0;
+  width: calc(var(--right) * 100 * var(--u));
+}
+
+.kindle-grip i {
+  position: absolute;
+  left: 50%;
+  translate: -50% -50%;
+}
+
+.kindle-grip .dot {
+  width: calc(1.1 * var(--u));
+  height: calc(1.1 * var(--u));
+  border-radius: 50%;
+  background: #1e1f22;
+}
+
+.kindle-grip .dot:first-child {
+  top: 28%;
+}
+
+.kindle-grip .dot:last-child {
+  top: 72%;
+}
+
+.kindle-grip .page-key {
+  width: calc(2.2 * var(--u));
+  height: calc(9.2 * var(--u));
+  border-radius: 999px;
+  background: #141518;
+  box-shadow:
+    inset 0 0 0 calc(0.32 * var(--u)) #55565b,
+    inset 0 calc(0.4 * var(--u)) calc(0.6 * var(--u)) rgba(255, 255, 255, 0.08);
+}
+
+.kindle-grip .page-key:nth-child(2) {
+  top: 41%;
+}
+
+.kindle-grip .page-key:nth-child(3) {
+  top: 60%;
 }
 
 .preview-caption {
@@ -41,8 +234,7 @@
     position: static;
   }
 
-  .device {
-    padding: 12px 12px 22px;
-    border-radius: 18px;
+  .kindle-fit {
+    --max-h: 640px;
   }
 }

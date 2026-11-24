@@ -20,7 +20,7 @@ function App() {
   const today = new Date();
   const [year, setYear] = useState(today.getFullYear());
   const [month, setMonth] = useState(today.getMonth() + 1);
-  const [size, setSize] = useState({ width: DEVICE_PRESETS[0].width, height: DEVICE_PRESETS[0].height });
+  const [size, setSize] = useState({ width: DEVICE_PRESETS[0].width, height: DEVICE_PRESETS[0].height, preset: DEVICE_PRESETS[0] });
   const [status, setStatus] = useState({ kind: 'idle' });
 
   const handleGenerate = async ({ allMonths }) => {

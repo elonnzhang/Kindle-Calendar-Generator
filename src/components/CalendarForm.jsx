@@ -2,10 +2,10 @@ import React, { useState } from 'react';
 import './CalendarForm.css';
 
 export const DEVICE_PRESETS = [
-  { name: 'Kindle Paperwhite', width: 1072, height: 1448 },
-  { name: 'Kindle Oasis', width: 1264, height: 1680 },
-  { name: 'Kindle Basic', width: 800, height: 1280 },
-  { name: 'Kindle Voyage', width: 1072, height: 1448 },
+  { name: 'Kindle Paperwhite', frame: 'paperwhite', width: 1072, height: 1448 },
+  { name: 'Kindle Oasis', frame: 'oasis', width: 1264, height: 1680 },
+  { name: 'Kindle Basic', frame: 'basic', width: 800, height: 1280 },
+  { name: 'Kindle Voyage', frame: 'voyage', width: 1072, height: 1448 },
 ];
 
 const LIMITS = { width: [600, 2000], height: [800, 3000] };
@@ -35,7 +35,6 @@ function Select({ id, value, onChange, disabled, children }) {
 
 function CalendarForm({ year, month, size, status, onYearChange, onMonthChange, onSizeChange, onGenerate }) {
   const [allMonths, setAllMonths] = useState(false);
-  const [preset, setPreset] = useState(DEVICE_PRESETS[0].name);
   const [draft, setDraft] = useState({ width: String(size.width), height: String(size.height) });
 
   const parsed = { width: parseSize('width', draft.width), height: parseSize('height', draft.height) };
@@ -43,18 +42,16 @@ function CalendarForm({ year, month, size, status, onYearChange, onMonthChange, 
   const working = status.kind === 'working';
 
   const applyPreset = (p) => {
-    setPreset(p.name);
     setDraft({ width: String(p.width), height: String(p.height) });
-    onSizeChange({ width: p.width, height: p.height });
+    onSizeChange({ width: p.width, height: p.height, preset: p });
   };
 
   const editSize = (key, text) => {
     const next = { ...draft, [key]: text };
     setDraft(next);
-    setPreset(null);
     const width = parseSize('width', next.width);
     const height = parseSize('height', next.height);
-    if (width !== null && height !== null) onSizeChange({ width, height });
+    onSizeChange(width !== null && height !== null ? { width, height, preset: null } : { ...size, preset: null });
   };
 
   const submit = (e) => {
@@ -113,7 +110,7 @@ function CalendarForm({ year, month, size, status, onYearChange, onMonthChange, 
                 key={p.name}
                 type="button"
                 className="preset"
-                aria-pressed={preset === p.name}
+                aria-pressed={size.preset === p}
                 onClick={() => applyPreset(p)}
               >
                 <span className="preset-name">{p.name.replace('Kindle ', '')}</span>
