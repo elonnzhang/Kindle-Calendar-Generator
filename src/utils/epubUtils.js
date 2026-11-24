@@ -3,7 +3,7 @@
  * Note: Requires JSZip library
  */
 
-import { generateCalendarSVG } from './calendarUtils';
+import { generateCalendarSVG } from '../lib/calendarGenerator.js';
 
 /**
  * Generate EPUB file in browser
