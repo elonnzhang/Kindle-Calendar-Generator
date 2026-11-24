@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 
 import { Command } from 'commander';
-import { generateCalendarEpub } from './lib/epubGenerator.js';
+import { buildCalendarEpub, epubFilename } from './lib/epub.js';
 import fs from 'fs';
 import path from 'path';
 
@@ -34,13 +34,12 @@ if (!fs.existsSync(outputDir)) {
 }
 
 async function generateMonth(year, month) {
-  const filename = `calendar_${year}_${month.toString().padStart(2, '0')}.epub`;
-  const outputPath = path.join(outputDir, filename);
+  const outputPath = path.join(outputDir, epubFilename(year, month));
 
   console.log(`Generating calendar for ${year}-${month.toString().padStart(2, '0')}...`);
 
   try {
-    await generateCalendarEpub(year, month, width, height, outputPath);
+    await fs.promises.writeFile(outputPath, buildCalendarEpub(year, month, width, height));
     console.log(`✓ Saved to: ${outputPath}`);
     return outputPath;
   } catch (error) {

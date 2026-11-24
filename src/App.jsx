@@ -1,8 +1,18 @@
 import React, { useState } from 'react';
 import CalendarPreview from './components/CalendarPreview';
 import CalendarForm from './components/CalendarForm';
-import { downloadEpub } from './utils/epubUtils';
+import { buildCalendarEpub, epubFilename } from './lib/epub.js';
 import './App.css';
+
+function downloadEpub(year, month, width, height) {
+  const blob = new Blob([buildCalendarEpub(year, month, width, height)], { type: 'application/epub+zip' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = epubFilename(year, month);
+  a.click();
+  URL.revokeObjectURL(url);
+}
 
 function App() {
   const [selectedYear, setSelectedYear] = useState(new Date().getFullYear());

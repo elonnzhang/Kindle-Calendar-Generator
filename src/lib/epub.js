@@ -1,39 +1,26 @@
-/**
- * Browser-compatible EPUB generator using JSZip
- * Note: Requires JSZip library
- */
+import { zipSync, strToU8 } from 'fflate';
+import { generateCalendarSVG } from './calendarGenerator.js';
 
-import { generateCalendarSVG } from '../lib/calendarGenerator.js';
+const pad = (month) => month.toString().padStart(2, '0');
 
-/**
- * Generate EPUB file in browser
- */
-export async function generateEpubInBrowser(year, month, width, height) {
-  // Dynamically import JSZip
-  const JSZip = (await import('https://cdn.jsdelivr.net/npm/jszip@3.10.1/+esm')).default;
+export const epubFilename = (year, month) => `calendar_${year}_${pad(month)}.epub`;
 
-  const calendarSVG = generateCalendarSVG(year, month, width, height);
+export function buildCalendarEpub(year, month, width, height) {
+  const uid = `kindle-calendar-${year}-${pad(month)}`;
+  const title = `${year}年${month}月 日历`;
 
-  const zip = new JSZip();
-
-  // Add mimetype (uncompressed)
-  zip.file('mimetype', 'application/epub+zip', { compression: 'STORE' });
-
-  // META-INF/container.xml
   const container = `<?xml version="1.0"?>
 <container version="1.0" xmlns="urn:oasis:names:tc:opendocument:xmlns:container">
   <rootfiles>
     <rootfile full-path="OEBPS/content.opf" media-type="application/oebps-package+xml"/>
   </rootfiles>
 </container>`;
-  zip.file('META-INF/container.xml', container);
 
-  // OEBPS/content.opf
   const contentOpf = `<?xml version="1.0" encoding="UTF-8"?>
 <package xmlns="http://www.idpf.org/2007/opf" version="3.0" unique-identifier="uid">
   <metadata xmlns:dc="http://purl.org/dc/elements/1.1/">
-    <dc:identifier id="uid">kindle-calendar-${year}-${month.toString().padStart(2, '0')}</dc:identifier>
-    <dc:title>${year}年${month}月 日历</dc:title>
+    <dc:identifier id="uid">${uid}</dc:identifier>
+    <dc:title>${title}</dc:title>
     <dc:language>zh</dc:language>
     <dc:creator>Kindle Calendar Generator</dc:creator>
     <meta name="cover" content="cover-image"/>
@@ -52,12 +39,7 @@ export async function generateEpubInBrowser(year, month, width, height) {
     <reference type="cover" title="封面" href="cover.xhtml"/>
   </guide>
 </package>`;
-  zip.file('OEBPS/content.opf', contentOpf);
 
-  // OEBPS/cover.svg
-  zip.file('OEBPS/cover.svg', calendarSVG);
-
-  // OEBPS/cover.xhtml
   const coverXhtml = `<?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE html>
 <html xmlns="http://www.w3.org/1999/xhtml">
@@ -72,9 +54,7 @@ export async function generateEpubInBrowser(year, month, width, height) {
   <img src="cover.svg" alt="Calendar Cover"/>
 </body>
 </html>`;
-  zip.file('OEBPS/cover.xhtml', coverXhtml);
 
-  // OEBPS/page1.xhtml
   const page1Xhtml = `<?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE html>
 <html xmlns="http://www.w3.org/1999/xhtml">
@@ -87,19 +67,17 @@ export async function generateEpubInBrowser(year, month, width, height) {
   <p>待机时将显示封面上的日历。</p>
 </body>
 </html>`;
-  zip.file('OEBPS/page1.xhtml', page1Xhtml);
 
-  // OEBPS/toc.ncx
   const tocNcx = `<?xml version="1.0" encoding="UTF-8"?>
 <ncx xmlns="http://www.daisy.org/z3986/2005/ncx/" version="2005-1">
   <head>
-    <meta name="dtb:uid" content="kindle-calendar-${year}-${month.toString().padStart(2, '0')}"/>
+    <meta name="dtb:uid" content="${uid}"/>
     <meta name="dtb:depth" content="1"/>
     <meta name="dtb:totalPageCount" content="0"/>
     <meta name="dtb:maxPageNumber" content="0"/>
   </head>
   <docTitle>
-    <text>${year}年${month}月 日历</text>
+    <text>${title}</text>
   </docTitle>
   <navMap>
     <navPoint id="navPoint-1" playOrder="1">
@@ -110,24 +88,17 @@ export async function generateEpubInBrowser(year, month, width, height) {
     </navPoint>
   </navMap>
 </ncx>`;
-  zip.file('OEBPS/toc.ncx', tocNcx);
 
-  // Generate blob
-  const blob = await zip.generateAsync({ type: 'blob' });
-  return blob;
-}
-
-/**
- * Download EPUB file
- */
-export async function downloadEpub(year, month, width, height) {
-  const blob = await generateEpubInBrowser(year, month, width, height);
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement('a');
-  a.href = url;
-  a.download = `calendar_${year}_${month.toString().padStart(2, '0')}.epub`;
-  document.body.appendChild(a);
-  a.click();
-  URL.revokeObjectURL(url);
-  document.body.removeChild(a);
+  return zipSync(
+    {
+      mimetype: [strToU8('application/epub+zip'), { level: 0 }],
+      'META-INF/container.xml': strToU8(container),
+      'OEBPS/content.opf': strToU8(contentOpf),
+      'OEBPS/cover.svg': strToU8(generateCalendarSVG(year, month, width, height)),
+      'OEBPS/cover.xhtml': strToU8(coverXhtml),
+      'OEBPS/page1.xhtml': strToU8(page1Xhtml),
+      'OEBPS/toc.ncx': strToU8(tocNcx),
+    },
+    { level: 9 },
+  );
 }
