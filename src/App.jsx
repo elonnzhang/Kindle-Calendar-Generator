@@ -1,11 +1,25 @@
 import React, { useState } from 'react';
 import CalendarPreview from './components/CalendarPreview';
 import CalendarForm, { DEVICE_PRESETS } from './components/CalendarForm';
+import { generateCalendarSVG } from './lib/calendarGenerator.js';
 import { buildCalendarEpub, epubFilename } from './lib/epub.js';
 import './App.css';
 
-function downloadEpub(year, month, width, height) {
-  const blob = new Blob([buildCalendarEpub(year, month, width, height)], { type: 'application/epub+zip' });
+async function coverPng(year, month, width, height) {
+  const img = new Image();
+  img.src = `data:image/svg+xml;charset=utf-8,${encodeURIComponent(generateCalendarSVG(year, month, width, height))}`;
+  await img.decode();
+  const canvas = document.createElement('canvas');
+  canvas.width = width;
+  canvas.height = height;
+  canvas.getContext('2d').drawImage(img, 0, 0, width, height);
+  const blob = await new Promise((resolve) => canvas.toBlob(resolve, 'image/png'));
+  return new Uint8Array(await blob.arrayBuffer());
+}
+
+async function downloadEpub(year, month, width, height) {
+  const cover = await coverPng(year, month, width, height);
+  const blob = new Blob([buildCalendarEpub(year, month, cover)], { type: 'application/epub+zip' });
   const url = URL.createObjectURL(blob);
   const a = document.createElement('a');
   a.href = url;
@@ -29,7 +43,7 @@ function App() {
       for (const [i, m] of months.entries()) {
         setStatus({ kind: 'working', done: i, total: months.length });
         if (i > 0) await sleep(500);
-        downloadEpub(year, m, size.width, size.height);
+        await downloadEpub(year, m, size.width, size.height);
       }
       setStatus({
         kind: 'done',

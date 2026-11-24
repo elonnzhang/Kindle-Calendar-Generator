@@ -13,7 +13,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 - **Frontend**: React + Vite
 - **Backend/CLI**: Node.js (ES Modules)
-- **Image Generation**: Pure JavaScript SVG generation (no native dependencies)
+- **Image Generation**: Pure JavaScript SVG generation, rasterized to a PNG cover (no native dependencies)
 - **EPUB Generation**: fflate, shared by the CLI and the web app
 
 ## Architecture
@@ -33,12 +33,13 @@ The project has two main interfaces:
 ### Key Implementation Details
 
 - **No Native Dependencies**: Uses SVG for calendar rendering instead of node-canvas to avoid compilation issues across different Node.js versions
+- **PNG Cover**: Amazon's Kindle pipeline drops SVG covers, so the EPUB cover is `OEBPS/cover.png`. The CLI rasterizes the SVG with `@resvg/resvg-wasm`; the web app draws it on a canvas
 - **EPUB Structure**: Manually creates EPUB structure (ZIP with `mimetype` first and stored, META-INF, OEBPS)
 - **Chinese Calendar**: Weekdays in Chinese (一到日)
 - **No Date Highlighting**: The current day is not highlighted. Saturday and Sunday are printed in grey
 - **Text as Paths**: The cover draws every character as a glyph outline from `src/lib/glyphs.js` (Bodoni Moda and Noto Serif SC, OFL), because a Kindle has none of these fonts. Run `npm run glyphs` to regenerate it after you change a font or add a character to `scripts/build-glyphs.mjs`
 - **Kindle Optimized**: Default 1072×1448 resolution for Kindle Paperwhite, configurable for other devices
-- **Same Output**: The web app and the CLI produce EPUBs with identical entries and contents
+- **Same Output**: The web app and the CLI produce EPUBs with the same entries. Only the PNG bytes differ, because each uses its own rasterizer
 
 ## Project Structure
 
@@ -102,7 +103,7 @@ npm run generate -- --width 1264 --height 1680
 ### Output
 - EPUB files are saved to `output/` directory by default
 - Files are named: `calendar_YYYY_MM.epub`
-- Transfer EPUB files to Kindle via USB or email
+- Transfer EPUB files with Send to Kindle (email or the web page). A Kindle does not open EPUB files copied over USB
 
 ## Kindle Device Resolutions
 

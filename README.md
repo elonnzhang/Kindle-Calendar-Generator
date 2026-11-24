@@ -19,7 +19,7 @@
 
 - Frontend: React + Vite
 - Backend/CLI: Node.js (ES Modules)
-- 图像生成: 纯 JavaScript SVG（无需编译原生模块）
+- 图像生成: 纯 JavaScript SVG，再转成 PNG 作为封面（无需编译原生模块）
 - EPUB 生成: fflate（Web 界面和命令行共用 `src/lib/epub.js`）
 
 ## 安装
@@ -71,8 +71,11 @@ npm run generate -- --width 1264 --height 1680
 生成的 EPUB 文件位于 `output/` 目录，文件名格式为 `calendar_YYYY_MM.epub`。
 
 将文件传输到 Kindle：
-1. 通过 USB 连接 Kindle 并复制文件到 `documents` 文件夹
-2. 或通过邮件发送到 Kindle 邮箱
+1. 用 Send to Kindle 发送：发邮件到你的 Kindle 邮箱，或在 https://www.amazon.com/sendtokindle 上传。Kindle 不能打开用 USB 复制进去的 EPUB 文件。
+2. 在 Kindle 上打开设置，进入「设备选项」，打开「显示封面」。无广告版 Kindle 才有这个选项。
+3. 在 Kindle 上打开这本书，再按电源键锁屏，待机画面就会显示日历封面。
+
+如果之前传过同名的书，先在 Kindle 上删除旧的那本，否则可能显示旧的缩略图。
 
 ## 项目结构
 

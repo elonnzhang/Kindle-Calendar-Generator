@@ -1,9 +1,12 @@
 #!/usr/bin/env node
 
 import { Command, InvalidArgumentError } from 'commander';
+import { initWasm, Resvg } from '@resvg/resvg-wasm';
+import { generateCalendarSVG } from './lib/calendarGenerator.js';
 import { buildCalendarEpub, epubFilename } from './lib/epub.js';
 import fs from 'fs';
 import path from 'path';
+import { fileURLToPath } from 'url';
 
 const intIn = (min, max) => (value) => {
   const n = Number(value);
@@ -30,11 +33,14 @@ const program = new Command()
 const { year, month, width, height, output: outputDir, all } = program.opts();
 
 fs.mkdirSync(outputDir, { recursive: true });
+await initWasm(fs.readFileSync(fileURLToPath(import.meta.resolve('@resvg/resvg-wasm/index_bg.wasm'))));
+
+const coverPng = (month) => new Resvg(generateCalendarSVG(year, month, width, height)).render().asPng();
 
 async function generateMonth(month) {
   const outputPath = path.join(outputDir, epubFilename(year, month));
   console.log(`Generating calendar for ${year}-${month.toString().padStart(2, '0')}...`);
-  await fs.promises.writeFile(outputPath, buildCalendarEpub(year, month, width, height));
+  await fs.promises.writeFile(outputPath, buildCalendarEpub(year, month, coverPng(month)));
   console.log(`✓ Saved to: ${outputPath}`);
 }
 

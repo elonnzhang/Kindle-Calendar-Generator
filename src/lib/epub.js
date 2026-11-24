@@ -1,11 +1,12 @@
 import { zipSync, strToU8 } from 'fflate';
-import { generateCalendarSVG } from './calendarGenerator.js';
 
 const pad = (month) => month.toString().padStart(2, '0');
 
 export const epubFilename = (year, month) => `calendar_${year}_${pad(month)}.epub`;
 
-export function buildCalendarEpub(year, month, width, height) {
+// coverPng is the cover as PNG bytes. Amazon's Kindle pipeline accepts
+// JPEG, PNG, GIF, and TIFF covers, and drops an SVG cover.
+export function buildCalendarEpub(year, month, coverPng) {
   const uid = `kindle-calendar-${year}-${pad(month)}`;
   const title = `${year}年${month}月 日历`;
 
@@ -27,7 +28,7 @@ export function buildCalendarEpub(year, month, width, height) {
   </metadata>
   <manifest>
     <item id="cover" href="cover.xhtml" media-type="application/xhtml+xml"/>
-    <item id="cover-image" href="cover.svg" media-type="image/svg+xml" properties="cover-image"/>
+    <item id="cover-image" href="cover.png" media-type="image/png" properties="cover-image"/>
     <item id="page1" href="page1.xhtml" media-type="application/xhtml+xml"/>
     <item id="ncx" href="toc.ncx" media-type="application/x-dtbncx+xml"/>
   </manifest>
@@ -51,7 +52,7 @@ export function buildCalendarEpub(year, month, width, height) {
   </style>
 </head>
 <body>
-  <img src="cover.svg" alt="Calendar Cover"/>
+  <img src="cover.png" alt="Calendar Cover"/>
 </body>
 </html>`;
 
@@ -94,7 +95,7 @@ export function buildCalendarEpub(year, month, width, height) {
       mimetype: [strToU8('application/epub+zip'), { level: 0 }],
       'META-INF/container.xml': strToU8(container),
       'OEBPS/content.opf': strToU8(contentOpf),
-      'OEBPS/cover.svg': strToU8(generateCalendarSVG(year, month, width, height)),
+      'OEBPS/cover.png': [coverPng, { level: 0 }],
       'OEBPS/cover.xhtml': strToU8(coverXhtml),
       'OEBPS/page1.xhtml': strToU8(page1Xhtml),
       'OEBPS/toc.ncx': strToU8(tocNcx),
