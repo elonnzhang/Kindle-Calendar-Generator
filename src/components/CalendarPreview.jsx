@@ -4,12 +4,12 @@ import './CalendarPreview.css';
 
 // Bezel widths as fractions of the body width, measured from the published
 // body sizes (mm) and front photos of each model on Wikimedia Commons.
-//   Paperwhite 3: 169 × 117 mm, 6" screen recessed below a matte bezel.
+//   Paperwhite:   177 × 128 mm (2021 and later), flush glass, thin even bezels.
 //   Voyage:       162 × 115 mm, flush glass, PagePress marks on both sides.
 //   Oasis 3:      159 × 141 mm, 7" flush glass, aluminium rim, grip with two buttons.
 //   Kindle 2022:  158 × 109 mm, 6" screen recessed, rounded body, embossed logo.
 const FRAMES = {
-  paperwhite: { top: 0.154, bottom: 0.248, left: 0.109, right: 0.109, radius: 0.055, logo: true },
+  paperwhite: { top: 0.083, bottom: 0.19, left: 0.083, right: 0.083, radius: 0.05, logo: true },
   voyage: { top: 0.139, bottom: 0.209, left: 0.103, right: 0.103, radius: 0.05, logo: true },
   oasis: { top: 0.057, bottom: 0.062, left: 0.046, right: 0.197, radius: 0.035, logo: false },
   basic: { top: 0.12, bottom: 0.19, left: 0.079, right: 0.079, radius: 0.085, logo: true },

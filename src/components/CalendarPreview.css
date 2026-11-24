@@ -65,34 +65,22 @@
   user-select: none;
 }
 
-/* Matte plastic with a recessed screen: Paperwhite and Kindle. */
-.kindle-paperwhite,
+/* Matte plastic with a recessed screen: Kindle. */
 .kindle-basic {
-  background-color: #2b2c2f;
+  background-color: #1f1f21;
   background-image:
     linear-gradient(180deg, rgba(255, 255, 255, 0.04), rgba(0, 0, 0, 0.1)),
     url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 1 0 0 0 0 1 0 0 0 0 1 0 0 0 .06 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
 }
 
-.kindle-paperwhite .kindle-screen,
 .kindle-basic .kindle-screen {
   box-shadow: 0 0 0 calc(0.45 * var(--u)) #161719;
 }
 
-.kindle-paperwhite .kindle-screen::after,
 .kindle-basic .kindle-screen::after {
   box-shadow:
     inset 0 calc(0.5 * var(--u)) calc(1 * var(--u)) rgba(0, 0, 0, 0.32),
     inset 0 0 0 1px rgba(0, 0, 0, 0.35);
-}
-
-.kindle-paperwhite .kindle-logo {
-  color: #111214;
-  text-shadow: 0 1px 0 rgba(255, 255, 255, 0.06);
-}
-
-.kindle-basic {
-  background-color: #1f1f21;
 }
 
 .kindle-basic .kindle-logo {
@@ -102,12 +90,14 @@
     0 1px 0 rgba(255, 255, 255, 0.07);
 }
 
-/* Flush glass front: Voyage and Oasis. */
+/* Flush glass front: Paperwhite, Voyage, and Oasis. */
+.kindle-paperwhite,
 .kindle-voyage,
 .kindle-oasis {
   background: #101113;
 }
 
+.kindle-paperwhite::before,
 .kindle-voyage::before,
 .kindle-oasis::before {
   content: '';
@@ -119,6 +109,7 @@
   pointer-events: none;
 }
 
+.kindle-paperwhite .kindle-screen::after,
 .kindle-voyage .kindle-screen::after,
 .kindle-oasis .kindle-screen::after {
   box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.45);
@@ -126,6 +117,12 @@
 
 .kindle-voyage .kindle-logo {
   color: #5c5d61;
+}
+
+.kindle-paperwhite .kindle-logo {
+  color: #6a6b70;
+  font-size: calc(5 * var(--u));
+  font-weight: 400;
 }
 
 .kindle-pagepress {
