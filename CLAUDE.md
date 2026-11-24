@@ -35,7 +35,8 @@ The project has two main interfaces:
 - **No Native Dependencies**: Uses SVG for calendar rendering instead of node-canvas to avoid compilation issues across different Node.js versions
 - **EPUB Structure**: Manually creates EPUB structure (ZIP with `mimetype` first and stored, META-INF, OEBPS)
 - **Chinese Calendar**: Weekdays in Chinese (一到日)
-- **No Date Highlighting**: Calendar displays all dates uniformly without highlighting current day
+- **No Date Highlighting**: The current day is not highlighted. Saturday and Sunday are printed in grey
+- **Text as Paths**: The cover draws every character as a glyph outline from `src/lib/glyphs.js` (Bodoni Moda and Noto Serif SC, OFL), because a Kindle has none of these fonts. Run `npm run glyphs` to regenerate it after you change a font or add a character to `scripts/build-glyphs.mjs`
 - **Kindle Optimized**: Default 1072×1448 resolution for Kindle Paperwhite, configurable for other devices
 - **Same Output**: The web app and the CLI produce EPUBs with identical entries and contents
 
@@ -51,8 +52,10 @@ kindle-calendar/
 │   │   └── CalendarPreview.jsx
 │   ├── lib/                  # Core logic
 │   │   ├── calendarGenerator.js
+│   │   ├── glyphs.js         # Generated glyph outlines
 │   │   └── epub.js
 │   └── cli.js                # CLI tool
+├── scripts/build-glyphs.mjs  # Regenerates src/lib/glyphs.js
 ├── index.html                # HTML entry
 ├── vite.config.js            # Vite configuration
 └── package.json              # Dependencies

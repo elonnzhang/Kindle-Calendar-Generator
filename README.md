@@ -10,7 +10,8 @@
 
 - 📱 **Web 界面**：可视化配置和实时预览，在浏览器里直接下载 EPUB
 - 💻 **命令行工具**：批量生成 EPUB 格式电子书
-- 🎨 中文星期显示（一到日）
+- 🎨 中文星期显示（一到日），周末日期为灰色
+- 🔤 封面文字用 Bodoni Moda 和思源宋体（Noto Serif SC）的字形轮廓绘制，在 Kindle 上显示效果与预览一致
 - 📚 支持生成单月或全年 12 个月
 - 🖥️ 预设多种 Kindle 设备分辨率
 
@@ -85,6 +86,7 @@ kindle-calendar/
 │   │   └── CalendarPreview.jsx  # 日历预览
 │   ├── lib/                  # 核心逻辑
 │   │   ├── calendarGenerator.js  # 日历 SVG 生成
+│   │   ├── glyphs.js             # 字形轮廓（由 npm run glyphs 生成）
 │   │   └── epub.js               # EPUB 打包（Web 和 CLI 共用）
 │   └── cli.js                # 命令行工具
 ├── index.html                # HTML 入口
@@ -98,6 +100,10 @@ kindle-calendar/
 npm run build
 npm run preview
 ```
+
+## 字体
+
+封面用到的字形保存在 `src/lib/glyphs.js`。修改字体或新增字符时，编辑 `scripts/build-glyphs.mjs`，然后运行 `npm run glyphs`。两种字体都采用 SIL Open Font License 1.1。
 
 ## 依赖
 
