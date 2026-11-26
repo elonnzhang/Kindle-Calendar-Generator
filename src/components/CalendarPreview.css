@@ -3,6 +3,7 @@
   flex-direction: column;
   align-items: center;
   gap: 20px;
+  --max-h: min(74vh, 680px);
   position: sticky;
   top: 24px;
 }
@@ -10,9 +11,26 @@
 /* Sizes the device so it fits both the column width and the viewport height.
    --body-h is the body height as a fraction of its width. */
 .kindle-fit {
-  --max-h: min(74vh, 680px);
   width: min(100%, calc(var(--max-h) / var(--body-h)));
   container-type: inline-size;
+}
+
+/* Turned 90° clockwise: the box takes the turned device's footprint, and the
+   device inside keeps its portrait width so its bezel units stay the same. */
+.kindle-landscape {
+  position: relative;
+  width: min(100%, calc(var(--max-h) * var(--body-h)));
+  aspect-ratio: var(--body-h);
+  container-type: inline-size;
+}
+
+.kindle-landscape > .kindle-fit {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: calc(100cqw / var(--body-h));
+  translate: -50% -50%;
+  rotate: 90deg;
 }
 
 .kindle {
@@ -229,9 +247,6 @@
 @media (max-width: 860px) {
   .preview {
     position: static;
-  }
-
-  .kindle-fit {
     --max-h: 640px;
   }
 }

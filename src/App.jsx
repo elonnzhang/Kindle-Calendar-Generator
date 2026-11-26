@@ -5,9 +5,9 @@ import { generateCalendarSVG } from './lib/calendarGenerator.js';
 import { buildCalendarEpub, epubFilename } from './lib/epub.js';
 import './App.css';
 
-async function coverPng(year, month, width, height) {
+async function coverPng(year, month, width, height, orientation) {
   const img = new Image();
-  img.src = `data:image/svg+xml;charset=utf-8,${encodeURIComponent(generateCalendarSVG(year, month, width, height))}`;
+  img.src = `data:image/svg+xml;charset=utf-8,${encodeURIComponent(generateCalendarSVG(year, month, width, height, orientation))}`;
   await img.decode();
   const canvas = document.createElement('canvas');
   canvas.width = width;
@@ -17,13 +17,13 @@ async function coverPng(year, month, width, height) {
   return new Uint8Array(await blob.arrayBuffer());
 }
 
-async function downloadEpub(year, month, width, height) {
-  const cover = await coverPng(year, month, width, height);
-  const blob = new Blob([buildCalendarEpub(year, month, cover)], { type: 'application/epub+zip' });
+async function downloadEpub(year, month, width, height, orientation) {
+  const cover = await coverPng(year, month, width, height, orientation);
+  const blob = new Blob([buildCalendarEpub(year, month, cover, orientation)], { type: 'application/epub+zip' });
   const url = URL.createObjectURL(blob);
   const a = document.createElement('a');
   a.href = url;
-  a.download = epubFilename(year, month);
+  a.download = epubFilename(year, month, orientation);
   a.click();
   URL.revokeObjectURL(url);
 }
@@ -35,6 +35,7 @@ function App() {
   const [year, setYear] = useState(today.getFullYear());
   const [month, setMonth] = useState(today.getMonth() + 1);
   const [size, setSize] = useState({ width: DEVICE_PRESETS[0].width, height: DEVICE_PRESETS[0].height, preset: DEVICE_PRESETS[0] });
+  const [orientation, setOrientation] = useState('portrait');
   const [status, setStatus] = useState({ kind: 'idle' });
 
   const handleGenerate = async ({ allMonths }) => {
@@ -43,11 +44,11 @@ function App() {
       for (const [i, m] of months.entries()) {
         setStatus({ kind: 'working', done: i, total: months.length });
         if (i > 0) await sleep(500);
-        await downloadEpub(year, m, size.width, size.height);
+        await downloadEpub(year, m, size.width, size.height, orientation);
       }
       setStatus({
         kind: 'done',
-        message: allMonths ? `已下载 ${year} 年全部 12 本` : `已下载 ${epubFilename(year, month)}`,
+        message: allMonths ? `已下载 ${year} 年全部 12 本` : `已下载 ${epubFilename(year, month, orientation)}`,
       });
     } catch (error) {
       setStatus({ kind: 'error', message: `生成失败：${error.message}` });
@@ -66,13 +67,15 @@ function App() {
           year={year}
           month={month}
           size={size}
+          orientation={orientation}
           status={status}
           onYearChange={setYear}
           onMonthChange={setMonth}
           onSizeChange={setSize}
+          onOrientationChange={setOrientation}
           onGenerate={handleGenerate}
         />
-        <CalendarPreview year={year} month={month} size={size} />
+        <CalendarPreview year={year} month={month} size={size} orientation={orientation} />
       </main>
     </div>
   );

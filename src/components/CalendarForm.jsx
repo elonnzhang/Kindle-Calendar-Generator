@@ -8,6 +8,11 @@ export const DEVICE_PRESETS = [
   { name: 'Kindle Voyage', frame: 'voyage', width: 1072, height: 1448 },
 ];
 
+const ORIENTATIONS = [
+  { value: 'portrait', name: '竖屏', hint: '正常拿着' },
+  { value: 'landscape', name: '横屏', hint: '底边朝左' },
+];
+
 const LIMITS = { width: [600, 2000], height: [800, 3000] };
 
 const parseSize = (key, text) => {
@@ -33,7 +38,18 @@ function Select({ id, value, onChange, disabled, children }) {
   );
 }
 
-function CalendarForm({ year, month, size, status, onYearChange, onMonthChange, onSizeChange, onGenerate }) {
+function CalendarForm({
+  year,
+  month,
+  size,
+  orientation,
+  status,
+  onYearChange,
+  onMonthChange,
+  onSizeChange,
+  onOrientationChange,
+  onGenerate,
+}) {
   const [allMonths, setAllMonths] = useState(false);
   const [draft, setDraft] = useState({ width: String(size.width), height: String(size.height) });
 
@@ -115,6 +131,24 @@ function CalendarForm({ year, month, size, status, onYearChange, onMonthChange, 
               >
                 <span className="preset-name">{p.name.replace('Kindle ', '')}</span>
                 <span className="preset-size">{p.width} × {p.height}</span>
+              </button>
+            ))}
+          </div>
+        </fieldset>
+
+        <fieldset className="field">
+          <legend>方向</legend>
+          <div className="presets">
+            {ORIENTATIONS.map((o) => (
+              <button
+                key={o.value}
+                type="button"
+                className="preset"
+                aria-pressed={orientation === o.value}
+                onClick={() => onOrientationChange(o.value)}
+              >
+                <span className="preset-name">{o.name}</span>
+                <span className="preset-size">{o.hint}</span>
               </button>
             ))}
           </div>

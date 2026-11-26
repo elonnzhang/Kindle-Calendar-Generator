@@ -2,13 +2,18 @@ import { zipSync, strToU8 } from 'fflate';
 
 const pad = (month) => month.toString().padStart(2, '0');
 
-export const epubFilename = (year, month) => `calendar_${year}_${pad(month)}.epub`;
+// _V for a portrait cover, _H for a landscape one.
+export const epubFilename = (year, month, orientation = 'portrait') =>
+  `calendar_${year}_${pad(month)}_${orientation === 'landscape' ? 'H' : 'V'}.epub`;
 
 // coverPng is the cover as PNG bytes. Amazon's Kindle pipeline accepts
 // JPEG, PNG, GIF, and TIFF covers, and drops an SVG cover.
-export function buildCalendarEpub(year, month, coverPng) {
-  const uid = `kindle-calendar-${year}-${pad(month)}`;
-  const title = `${year}年${month}月 日历`;
+// The landscape book gets its own title and identifier, so both
+// orientations of one month can sit in the same Kindle library.
+export function buildCalendarEpub(year, month, coverPng, orientation = 'portrait') {
+  const landscape = orientation === 'landscape';
+  const uid = `kindle-calendar-${year}-${pad(month)}${landscape ? '-h' : ''}`;
+  const title = `${year}年${month}月 日历${landscape ? '（横屏）' : ''}`;
 
   const container = `<?xml version="1.0"?>
 <container version="1.0" xmlns="urn:oasis:names:tc:opendocument:xmlns:container">

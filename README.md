@@ -57,6 +57,9 @@ npm run generate -- --output my_calendars/
 
 # 自定义图像尺寸（例如：Kindle Oasis）
 npm run generate -- --width 1264 --height 1680
+
+# Landscape, for a Kindle held sideways with its bottom edge on the left
+npm run generate -- --landscape
 ```
 
 ## Kindle 设备分辨率
@@ -68,7 +71,7 @@ npm run generate -- --width 1264 --height 1680
 
 ## 文件传输
 
-生成的 EPUB 文件位于 `output/` 目录，文件名格式为 `calendar_YYYY_MM.epub`。
+生成的 EPUB 文件位于 `output/` 目录，文件名格式为 `calendar_YYYY_MM_V.epub`（竖屏）或 `calendar_YYYY_MM_H.epub`（横屏）。
 
 将文件传输到 Kindle：
 1. 用 Send to Kindle 发送：发邮件到你的 Kindle 邮箱，或在 https://www.amazon.com/sendtokindle 上传。Kindle 不能打开用 USB 复制进去的 EPUB 文件。

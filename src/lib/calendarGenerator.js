@@ -38,38 +38,30 @@ function monthGrid(year, month) {
   return Array.from({ length: Math.ceil(cells.length / 7) }, (_, r) => cells.slice(r * 7, r * 7 + 7));
 }
 
-/**
- * Calendar cover for one month, as an SVG string.
- * @param {number} year
- * @param {number} month 1-12
- * @param {number} width pixels
- * @param {number} height pixels
- */
-export function generateCalendarSVG(year, month, width = 1072, height = 1448) {
-  const s = Math.min(width / 1072, height / 1448);
-  const margin = 72 * s;
-  const left = margin;
-  const right = width - margin;
-  const rule = (y, w = 1.5) =>
-    `<rect x="${fmt(left)}" y="${fmt(y - (w * s) / 2)}" width="${fmt(right - left)}" height="${fmt(w * s)}" fill="${RULE}"/>`;
+// A horizontal rule from x0 to x1, w pixels thick at scale 1.
+const rule = (x0, x1, y, s, w = 1.5) =>
+  `<rect x="${fmt(x0)}" y="${fmt(y - (w * s) / 2)}" width="${fmt(x1 - x0)}" height="${fmt(w * s)}" fill="${RULE}"/>`;
 
-  const parts = [];
+// English month and year, then a rule. Returns the rule's y.
+function masthead(parts, year, month, left, right, top, s) {
+  const y = top + 26 * s;
+  parts.push(text('caps', MONTHS_EN[month - 1], left, y, 30 * s, { tracking: 0.32 }));
+  parts.push(text('numeral', String(year), right, y, 30 * s, { anchor: 'end', tracking: 0.14 }));
+  parts.push(rule(left, right, y + 28 * s, s));
+  return y + 28 * s;
+}
 
-  // Masthead: English month and year, then a rule.
-  const mastY = margin + 26 * s;
-  parts.push(text('caps', MONTHS_EN[month - 1], left, mastY, 30 * s, { tracking: 0.32 }));
-  parts.push(text('numeral', String(year), right, mastY, 30 * s, { anchor: 'end', tracking: 0.14 }));
-  parts.push(rule(mastY + 28 * s));
+// Large month numeral with its cap height starting at top. Returns its baseline.
+function monthNumeral(parts, month, left, top, s) {
+  const base = top + 300 * s;
+  const size = (300 * s * FONTS.display.em) / FONTS.display.height;
+  parts.push(text('display', String(month), left - 6 * s, base, size));
+  return base;
+}
 
-  // Large month numeral, with the Chinese month on the same baseline.
-  const numeralBase = mastY + 28 * s + 64 * s + 300 * s;
-  const numeralSize = (300 * s * FONTS.display.em) / FONTS.display.height;
-  parts.push(text('display', String(month), left - 6 * s, numeralBase, numeralSize));
-  parts.push(text('cjkBold', MONTHS_ZH[month - 1], right, numeralBase, 64 * s, { anchor: 'end', tracking: 0.08 }));
-
-  // Weekday header.
+// Weekday header centred on weekY, then the day grid down to bottom.
+function dayGrid(parts, year, month, left, right, weekY, bottom, s) {
   const colW = (right - left) / 7;
-  const weekY = numeralBase + 96 * s;
   WEEKDAYS.forEach((d, i) => {
     parts.push(
       text('cjkBold', d, left + colW * (i + 0.5), centred('cjkBold', weekY, 32 * s), 32 * s, {
@@ -79,11 +71,11 @@ export function generateCalendarSVG(year, month, width = 1072, height = 1448) {
     );
   });
   const gridTop = weekY + 40 * s;
-  parts.push(rule(gridTop));
+  parts.push(rule(left, right, gridTop, s));
 
-  // Day grid: rows share the height left above the bottom margin.
+  // Rows share the height between the header and the bottom rule.
   const weeks = monthGrid(year, month);
-  const rowH = (height - margin - gridTop) / weeks.length;
+  const rowH = (bottom - gridTop) / weeks.length;
   const daySize = Math.min(64 * s, rowH * 0.5);
   weeks.forEach((week, r) => {
     const cy = gridTop + rowH * (r + 0.5);
@@ -96,13 +88,63 @@ export function generateCalendarSVG(year, month, width = 1072, height = 1448) {
         }),
       );
     });
-    if (r < weeks.length - 1) parts.push(rule(gridTop + rowH * (r + 1), 1));
+    if (r < weeks.length - 1) parts.push(rule(left, right, gridTop + rowH * (r + 1), s, 1));
   });
-  parts.push(rule(height - margin));
+  parts.push(rule(left, right, bottom, s));
+}
+
+// Portrait: numeral above a full-width grid. Designed at 1072 × 1448.
+function portrait(year, month, width, height) {
+  const s = Math.min(width / 1072, height / 1448);
+  const margin = 72 * s;
+  const left = margin;
+  const right = width - margin;
+  const parts = [];
+  const mastRule = masthead(parts, year, month, left, right, margin, s);
+  const numeralBase = monthNumeral(parts, month, left, mastRule + 64 * s, s);
+  parts.push(text('cjkBold', MONTHS_ZH[month - 1], right, numeralBase, 64 * s, { anchor: 'end', tracking: 0.08 }));
+  dayGrid(parts, year, month, left, right, numeralBase + 96 * s, height - margin, s);
+  return parts;
+}
+
+// Landscape: numeral on the left, grid on the right. Designed at 1448 × 1072.
+function landscape(year, month, width, height) {
+  const s = Math.min(width / 1448, height / 1072);
+  const margin = 72 * s;
+  const left = margin;
+  const right = width - margin;
+  const bottom = height - margin;
+  const gridLeft = left + 520 * s;
+  const parts = [];
+  const contentTop = masthead(parts, year, month, left, right, margin, s) + 64 * s;
+  monthNumeral(parts, month, left, contentTop, s);
+  parts.push(text('cjkBold', MONTHS_ZH[month - 1], left, bottom, 64 * s, { tracking: 0.08 }));
+  dayGrid(parts, year, month, gridLeft, right, contentTop + 16 * s, bottom, s);
+  return parts;
+}
+
+/**
+ * Calendar cover for one month, as an SVG string.
+ *
+ * width and height are the screen in portrait, because a Kindle always shows
+ * its cover in portrait. A landscape cover is laid out on the turned screen
+ * and drawn rotated, so it reads upright when the Kindle is held with its
+ * bottom edge on the left.
+ * @param {number} year
+ * @param {number} month 1-12
+ * @param {number} width pixels
+ * @param {number} height pixels
+ * @param {'portrait' | 'landscape'} orientation
+ */
+export function generateCalendarSVG(year, month, width = 1072, height = 1448, orientation = 'portrait') {
+  const body =
+    orientation === 'landscape'
+      ? `<g transform="translate(0 ${height}) rotate(-90)">\n${landscape(year, month, height, width).join('\n')}\n</g>`
+      : portrait(year, month, width, height).join('\n');
 
   return `<?xml version="1.0" encoding="UTF-8"?>
 <svg width="${width}" height="${height}" viewBox="0 0 ${width} ${height}" xmlns="http://www.w3.org/2000/svg">
 <rect width="${width}" height="${height}" fill="#ffffff"/>
-${parts.join('\n')}
+${body}
 </svg>`;
 }

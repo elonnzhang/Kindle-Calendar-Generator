@@ -27,20 +27,22 @@ const program = new Command()
   .option('-o, --output <directory>', 'Output directory', 'output')
   .option('-w, --width <width>', 'Image width in pixels', intIn(1, 10000), 1072)
   .option('-h, --height <height>', 'Image height in pixels', intIn(1, 10000), 1448)
+  .option('--landscape', 'Lay the calendar out for a Kindle held sideways, bottom edge on the left')
   .option('--all', 'Generate all 12 months')
   .parse();
 
-const { year, month, width, height, output: outputDir, all } = program.opts();
+const { year, month, width, height, output: outputDir, all, landscape } = program.opts();
 
 fs.mkdirSync(outputDir, { recursive: true });
 await initWasm(fs.readFileSync(fileURLToPath(import.meta.resolve('@resvg/resvg-wasm/index_bg.wasm'))));
 
-const coverPng = (month) => new Resvg(generateCalendarSVG(year, month, width, height)).render().asPng();
+const orientation = landscape ? 'landscape' : 'portrait';
+const coverPng = (month) => new Resvg(generateCalendarSVG(year, month, width, height, orientation)).render().asPng();
 
 async function generateMonth(month) {
-  const outputPath = path.join(outputDir, epubFilename(year, month));
+  const outputPath = path.join(outputDir, epubFilename(year, month, orientation));
   console.log(`Generating calendar for ${year}-${month.toString().padStart(2, '0')}...`);
-  await fs.promises.writeFile(outputPath, buildCalendarEpub(year, month, coverPng(month)));
+  await fs.promises.writeFile(outputPath, buildCalendarEpub(year, month, coverPng(month), orientation));
   console.log(`✓ Saved to: ${outputPath}`);
 }
 
