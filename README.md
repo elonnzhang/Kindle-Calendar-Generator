@@ -62,6 +62,10 @@ npm run generate -- --width 1264 --height 1680
 npm run generate -- --landscape
 ```
 
+### 每月自动发布
+
+GitHub Action（`.github/workflows/monthly-calendar.yml`）在每月 1 号北京时间 08:00 生成当月的竖屏和横屏 EPUB（Paperwhite 尺寸），发布到 [Releases](../../releases)，标签为 `calendar-YYYY-MM`。也可以在 Actions 页面手动运行，并指定年份和月份。
+
 ## Kindle 设备分辨率
 
 - Kindle Paperwhite: 1072×1448 (默认)

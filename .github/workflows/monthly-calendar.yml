@@ -1,0 +1,82 @@
+name: Monthly calendar
+
+# Builds the portrait and landscape EPUBs for the month and publishes them
+# as a release tagged calendar-YYYY-MM.
+on:
+  schedule:
+    # 00:00 UTC on the 1st, 08:00 in China.
+    - cron: '0 0 1 * *'
+  workflow_dispatch:
+    inputs:
+      year:
+        description: 'Year (blank for the current year)'
+        required: false
+      month:
+        description: 'Month 1-12 (blank for the current month)'
+        required: false
+
+permissions:
+  contents: write
+
+concurrency:
+  group: monthly-calendar
+  cancel-in-progress: false
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Install dependencies
+        run: npm install --omit=dev --no-audit --no-fund
+
+      - name: Pick the month
+        id: when
+        env:
+          INPUT_YEAR: ${{ inputs.year }}
+          INPUT_MONTH: ${{ inputs.month }}
+        run: |
+          year="${INPUT_YEAR:-$(TZ=Asia/Shanghai date +%Y)}"
+          month="${INPUT_MONTH:-$(TZ=Asia/Shanghai date +%-m)}"
+          if ! [[ "$year" =~ ^[0-9]{4}$ && "$month" =~ ^[0-9]{1,2}$ ]] || (( 10#$month < 1 || 10#$month > 12 )); then
+            echo "::error::Invalid year or month: '$year' '$month'"
+            exit 1
+          fi
+          month=$((10#$month))
+          echo "year=$year" >> "$GITHUB_OUTPUT"
+          echo "month=$month" >> "$GITHUB_OUTPUT"
+          echo "tag=calendar-$year-$(printf %02d "$month")" >> "$GITHUB_OUTPUT"
+
+      - name: Build EPUBs
+        env:
+          YEAR: ${{ steps.when.outputs.year }}
+          MONTH: ${{ steps.when.outputs.month }}
+        run: |
+          node src/cli.js --year "$YEAR" --month "$MONTH" --output output
+          node src/cli.js --year "$YEAR" --month "$MONTH" --output output --landscape
+          ls -l output
+
+      - name: Publish the release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          YEAR: ${{ steps.when.outputs.year }}
+          MONTH: ${{ steps.when.outputs.month }}
+          TAG: ${{ steps.when.outputs.tag }}
+        run: |
+          if gh release view "$TAG" > /dev/null 2>&1; then
+            gh release upload "$TAG" output/*.epub --clobber
+          else
+            gh release create "$TAG" output/*.epub \
+              --title "${YEAR} 年 ${MONTH} 月日历" \
+              --notes "Kindle Paperwhite 尺寸（1072 × 1448）。
+
+          - \`_V\`：竖屏
+          - \`_H\`：横屏，Kindle 底边朝左横着拿
+
+          用 Send to Kindle 传到 Kindle，待机画面会显示这个月的日历。"
+          fi

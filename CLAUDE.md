@@ -57,6 +57,7 @@ kindle-calendar/
 │   │   ├── glyphs.js         # Generated glyph outlines
 │   │   └── epub.js
 │   └── cli.js                # CLI tool
+├── .github/workflows/monthly-calendar.yml  # Monthly release of both EPUBs
 ├── scripts/build-glyphs.mjs  # Regenerates src/lib/glyphs.js
 ├── index.html                # HTML entry
 ├── vite.config.js            # Vite configuration
